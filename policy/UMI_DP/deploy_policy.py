@@ -85,6 +85,7 @@ class UmiBimanualDP:
             tx_robot1_robot0=tx,
         )
         self.n_action_steps = int(self.policy.action_horizon)
+        self.steps_per_inference = int(usr_args.get("steps_per_inference", 6))
         self.action_pose_repr = self.pose_repr.get("action_pose_repr", "relative")
 
     def reset(self) -> None:
@@ -107,7 +108,8 @@ class UmiBimanualDP:
         if pred.ndim == 1:
             pred = pred[None, :]
         actions_rw = []
-        for i in range(min(self.n_action_steps, pred.shape[0])):
+        n_exec = min(self.n_action_steps, pred.shape[0], self.steps_per_inference)
+        for i in range(n_exec):
             a = pred[i]
             env14 = get_real_umi_action(a, raw, self.action_pose_repr)
             actions_rw.append(umi_env14_to_robotwin_ee16(env14))

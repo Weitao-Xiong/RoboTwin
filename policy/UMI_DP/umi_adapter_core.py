@@ -133,6 +133,31 @@ class UmiObsRunner:
             out[k] = x
         return out
 
+    def _filter_obs_to_shape_meta(self, obs_dict_np: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
+        """
+        只保留 checkpoint 的 shape_meta.obs 里声明的键，再送进 policy/normalizer。
+
+        UMI 的 get_real_umi_obs_dict 会额外写入 *_wrt_start（相对回合起点），而旧 ckpt 可能只训练了
+        *_wrt1 / *_wrt0（跨臂相对）。不能把 wrt_start 张量误当成 wrt1（语义不同）；跨臂项已由同函数
+        前半段算好。多余键会导致 LinearNormalizer 对 dict 全键归一化时报缺参。
+        """
+        expected_obs = self.shape_meta.get("obs", {}) if isinstance(self.shape_meta, dict) else {}
+        if not isinstance(expected_obs, dict) or not expected_obs:
+            return obs_dict_np
+        out: Dict[str, np.ndarray] = {}
+        missing = []
+        for k in expected_obs:
+            if k not in obs_dict_np:
+                missing.append(k)
+            else:
+                out[k] = obs_dict_np[k]
+        if missing:
+            raise KeyError(
+                "观测键与 checkpoint 的 shape_meta.obs 不一致，缺少: "
+                f"{missing}；当前有: {sorted(obs_dict_np.keys())}"
+            )
+        return out
+
     def get_policy_obs(
         self,
         dict_apply,
@@ -150,6 +175,7 @@ class UmiObsRunner:
             tx_robot1_robot0=self.tx_robot1_robot0,
             episode_start_pose=self.episode_start_pose,
         )
+        obs_dict_np = self._filter_obs_to_shape_meta(obs_dict_np)
         obs_t = dict_apply(obs_dict_np, lambda x: torch.from_numpy(x).to(device=device, dtype=dtype))
         out = {k: v.unsqueeze(0) for k, v in obs_t.items()}
         return out

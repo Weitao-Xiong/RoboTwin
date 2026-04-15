@@ -10,22 +10,26 @@ expert_data_num: null
 
 # —— UMI 侧 ——
 # universal_manipulation_interface 仓库根目录（内含 umi/、diffusion_policy/）
-umi_root: /root/workspace/project/universal_manipulation_interface
+umi_root: /root/workspace/GenRobot/universal_manipulation_interface
 # 指定某个 epoch 的 ckpt（示例：epoch=0020-train_loss=0.033.ckpt）
-ckpt_path: /root/workspace/project/universal_manipulation_interface/data/outputs/2026.04.14/14.12.03_train_diffusion_unet_timm_umi/checkpoints/epoch=0040-train_loss=0.021.ckpt
+ckpt_path: /root/workspace/GenRobot/universal_manipulation_interface/data/outputs/epoch=0040-train_loss=0.021.ckpt
 device: cuda:0
 # DDIM 步数，与 eval_real 默认 16 对齐；不填则沿用 checkpoint 内策略默认值
 # num_inference_steps: 16
 
+# 每轮推理实际执行的预测步数（UMI 真机 eval 默认 6）；小于 action_horizon 时更频繁重规划
+# steps_per_inference: 6
+
 # 与训练时一致时可省略，否则显式指定
 # n_obs_steps: 2
 
-# RoboTwin observation["observation"] 里对应 UMI camera0 / camera1 的相机 key（如 head_camera, left_camera, right_camera）
-camera0_rgb_source: head_camera
-camera1_rgb_source: left_camera
+# UMI camera0/camera1 ↔ RoboTwin：DAS 双臂数据里 camera0=robot0（左）、camera1=robot1（右），与 head 第三人称无关。
+# 若 checkpoint 来自 UMI 原版第三人称设定，可改回 head_camera + 另一路。
+camera0_rgb_source: left_camera
+camera1_rgb_source: right_camera
 
-# 夹爪开合到 UMI gripper width 的缩放（与数据预处理一致）
-gripper_scale: 0.09
+# 夹爪开合到 UMI gripper width 的缩放（该 ckpt normalizer 统计范围约 0~0.103）
+gripper_scale: 0.1
 
 # 右臂基座相对左臂的 4x4（训练时标定；不对则跨臂相对观测会错）
 # tx_robot1_robot0: [[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]
