@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from ._base_task import Base_Task
 from .utils import *
 import sapien

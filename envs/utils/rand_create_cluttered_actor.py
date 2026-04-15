@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import sapien.core as sapien
 import numpy as np
 import transforms3d as t3d

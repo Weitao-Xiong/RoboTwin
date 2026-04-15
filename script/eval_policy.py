@@ -233,10 +233,10 @@ def eval_policy(task_name,
                 args["render_freq"] = render_freq
                 continue
             except Exception as e:
-                # stack_trace = traceback.format_exc()
-                # print(" -------------")
-                # print("Error: ", e)
-                # print(" -------------")
+                print(" -------------")
+                print("Error in expert_check stage:", e)
+                traceback.print_exc()
+                print(" -------------")
                 TASK_ENV.close_env()
                 now_seed += 1
                 args["render_freq"] = render_freq
@@ -355,7 +355,14 @@ def parse_args_and_config():
 
 if __name__ == "__main__":
     from test_render import Sapien_TEST
-    Sapien_TEST()
+    skip_render_test = os.environ.get("ROBOTWIN_SKIP_RENDER_TEST", "0") == "1"
+    if not skip_render_test:
+        try:
+            Sapien_TEST()
+        except Exception as e:
+            print(f"[warn] Render precheck failed, continue anyway: {e}")
+    else:
+        print("[info] Skip render precheck by ROBOTWIN_SKIP_RENDER_TEST=1")
 
     usr_args = parse_args_and_config()
 

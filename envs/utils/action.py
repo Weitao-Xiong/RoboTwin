@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Literal
 from .transforms import _tolist
 import numpy as np
